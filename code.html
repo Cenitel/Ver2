@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Извинение</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #fff0f3;
+      --card-bg: #ffffff;
+      --text-main: #4a3e3d;
+      --pink-soft: #ffccd5;
+      --pink-main: #ff85a1;
+      --pink-dark: #f72585;
+      --pink-glow: rgba(255, 133, 161, 0.4);
+      --font-title: 'Caveat', cursive;
+      --font-body: 'Nunito', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #fff5f7 0%, #ffe4e8 100%);
+      font-family: var(--font-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+      padding: 20px 10px;
+    }
+
+    .background-hearts {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .floating-heart {
+      position: absolute;
+      color: var(--pink-soft);
+      font-size: 20px;
+      animation: floatUp linear infinite;
+      opacity: 0.6;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(105vh) scale(0.8) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-10vh) scale(1.2) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      z-index: 2;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 3rem;
+      color: var(--pink-dark);
+      text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.8);
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: #725d5c;
+      font-weight: 600;
+    }
+
+    .upload-container {
+      margin-bottom: 15px;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .upload-btn-label {
+      background: #ffffff;
+      color: var(--pink-dark);
+      border: 2px dashed var(--pink-main);
+      padding: 8px 18px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-block;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(247, 37, 133, 0.05);
+    }
+
+    .upload-btn-label:hover {
+      background: var(--pink-soft);
+      border-color: var(--pink-dark);
+    }
+
+    #photoInput {
+      display: none;
+    }
+
+    .main-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      width: 100%;
+      max-width: 900px;
+      z-index: 2;
+    }
+
+    .heart-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 30px;
+      box-shadow: 0 15px 35px rgba(247, 37, 133, 0.08);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .photo-layer {
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 20px;
+      filter: blur(12px) grayscale(40%);
+      opacity: 0.3;
+      transition: filter 0.6s ease, opacity 0.6s ease, transform 0.6s ease;
+      z-index: 1;
+    }
+
+    .photo-layer.clear {
+      filter: blur(0px) grayscale(0%);
+      opacity: 1;
+    }
+
+    .heart-svg {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      overflow: visible;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .shard {
+      cursor: pointer;
+      fill: var(--pink-soft);
+      stroke: #ffffff;
+      stroke-width: 3px;
+      stroke-linejoin: round;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.4s ease, filter 0.4s ease;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.06));
+      pointer-events: auto;
+    }
+
+    .shard:hover {
+      fill: #ffb3c1;
+      filter: drop-shadow(0 6px 12px var(--pink-glow));
+    }
+
+    .shard.restored {
+      fill: var(--pink-main);
+      transform: translate(0, 0) rotate(0deg) scale(1) !important;
+      stroke: #ffffff;
+      opacity: 0.92;
+    }
+
+    .heart-svg.fully-healed {
+      animation: heartbeat 1.5s infinite alternate ease-in-out;
+    }
+
+    .heart-svg.fully-healed .shard {
+      fill: var(--pink-dark);
+      opacity: 0.4;
+    }
+
+    @keyframes heartbeat {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 15px rgba(247, 37, 133, 0.4));
+      }
+      100% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 25px rgba(247, 37, 133, 0.7));
+      }
+    }
+
+    .message-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 30px;
+      width: 100%;
+      max-width: 420px;
+      min-height: 270px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 2px solid #ffe6ea;
+      transition: all 0.4s ease;
+      position: relative;
+    }
+
+    .message-card .step-badge {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--pink-dark);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .message-card h2 {
+      font-family: var(--font-title);
+      font-size: 2.2rem;
+      color: var(--pink-dark);
+      margin-bottom: 10px;
+      line-height: 1.1;
+    }
+
+    .message-card p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .final-screen {
+      display: none;
+      text-align: center;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .final-screen h2 {
+      font-size: 2.3rem;
+      color: var(--pink-dark);
+      margin-bottom: 10px;
+    }
+
+    .final-screen p {
+      font-size: 1.05rem;
+      margin-bottom: 15px;
+    }
+
+    .restart-btn {
+      background: var(--pink-dark);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .restart-btn:hover {
+      transform: scale(1.05);
+      background: #d61c72;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-bar {
+      margin-top: 20px;
+      width: 100%;
+      height: 8px;
+      background: #ffe6ea;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--pink-main), var(--pink-dark));
+      transition: width 0.4s ease;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2.5rem; }
+      .heart-wrapper { width: 270px; height: 270px; }
+      .photo-layer { width: 180px; height: 180px; }
+      .heart-svg { width: 240px; height: 240px; }
+      .message-card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background-hearts" id="bgHearts"></div>
+
+  <header>
+    <h1>Извини меня, пожалуйста...</h1>
+    <div class="subtitle">Собери разбитое сердце, чтобы восстановить воспоминания 💔</div>
+  </header>
+
+  <div class="upload-container">
+    <label class="upload-btn-label" for="photoInput">📷 Выбрать свою фотографию</label>
+    <input type="file" id="photoInput" accept="image/*">
+  </div>
+
+  <div class="main-container">
+    <div class="heart-wrapper">
+      <img id="userPhoto" class="photo-layer" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=500&q=80" alt="Фото">
+      <svg class="heart-svg" id="heartSvg" viewBox="0 0 300 300">
+        <path class="shard" id="shard-1" d="M150,270 C150,270 50,190 30,120 C22,92 35,60 55,50 C70,42 95,45 110,65 L130,110 L150,150 L150,270 Z" />
+        <path class="shard" id="shard-2" d="M150,270 L150,150 L170,110 L190,65 C205,45 230,42 245,50 C265,60 278,92 270,120 C250,190 150,270 150,270 Z" />
+        <path class="shard" id="shard-3" d="M110,65 C120,48 135,40 150,40 C165,40 180,48 190,65 L170,110 L150,90 L130,110 Z" />
+        <path class="shard" id="shard-4" d="M55,50 C65,45 80,40 100,45 L110,65 L130,110 L100,130 L50,100 Z" />
+        <path class="shard" id="shard-5" d="M245,50 C235,45 220,40 200,45 L190,65 L170,110 L200,130 L250,100 Z" />
+      </svg>
+    </div>
+
+    <div class="message-card">
+      <div id="defaultMsg">
+        <div class="step-badge">Шаг 1 из 5</div>
+        <h2>Нажми на осколок</h2>
+        <p>Каждый кусочек этого сердца хранит в себе мысли о том, как ты мне дорог(а)... Кликни на любой разбросанный фрагмент.</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="final-screen" id="finalScreen">
+        <h2>Сердце снова целое! ❤️</h2>
+        <p>Спасибо за твою доброту и понимание. Ты самое ценное, что у меня есть, и я обещаю беречь тебя и наши отношения!</p>
+        <button class="restart-btn" onclick="resetHeart()">Собрать снова</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const shardData = {
+      'shard-1': {
+        title: "Я осознаю свою ошибку 💭",
+        text: "Я очень жалею о том, что произошло. Мне не нужно было так поступать или говорить эти слова. Ты мне очень дорог(а).",
+        offset: { x: -35, y: 35, rotate: -15 }
+      },
+      'shard-2': {
+        title: "Ты очень мне важен(на) 🌸",
+        text: "Твоя улыбка и твоё хорошее настроение — это лучшее, что есть в моих днях. Мне больно знать, что я стал(а) причиной твой грусти.",
+        offset: { x: 40, y: 30, rotate: 20 }
+      },
+      'shard-3': {
+        title: "Я хочу всё исправить ✨",
+        text: "Ошибки совершают все, но далеко не всё равно, как с ними поступать. Я готов(а) сделать всё, чтобы вернуть твое доверие.",
+        offset: { x: 0, y: -45, rotate: -10 }
+      },
+      'shard-4': {
+        title: "Ценю каждый момент 🤝",
+        text: "Наше общение и твоё тепло не сравнятся ни с чем. Я помню всё хорошее и хочу создавать еще больше добрых воспоминаний.",
+        offset: { x: -45, y: -25, rotate: -25 }
+      },
+      'shard-5': {
+        title: "Прости меня! ❤️",
+        text: "Пожалуйста, давай оставим эту обиду позади. Я искренне прошу у тебя прощения и очень хочу тебя обнять!",
+        offset: { x: 45, y: -20, rotate: 25 }
+      }
+    };
+
+    let restoredCount = 0;
+    const totalShards = 5;
+
+    function initShards() {
+      restoredCount = 0;
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('heartSvg').classList.remove('fully-healed');
+      document.getElementById('userPhoto').classList.remove('clear');
+      
+      document.getElementById('defaultMsg').style.display = 'block';
+      document.getElementById('finalScreen').style.display = 'none';
+      
+      document.getElementById('defaultMsg').querySelector('h2').innerText = "Нажми на осколок";
+      document.getElementById('defaultMsg').querySelector('p').innerText = "Каждый кусочек этого сердца хранит в себе мысли о том, как ты мне дорог(а)... Кликни на любой разбросанный фрагмент.";
+      document.getElementById('defaultMsg').querySelector('.step-badge').innerText = `Собрано 0 из ${totalShards}`;
+
+      Object.keys(shardData).forEach(id => {
+        const el = document.getElementById(id);
+        const data = shardData[id];
+        el.classList.remove('restored');
+        el.style.transform = `translate(${data.offset.x}px, ${data.offset.y}px) rotate(${data.offset.rotate}deg)`;
+        
+        el.onclick = () => handleShardClick(id);
+      });
+    }
+
+    function handleShardClick(id) {
+      const el = document.getElementById(id);
+      if (el.classList.contains('restored')) return;
+
+      el.classList.add('restored');
+      restoredCount++;
+
+      const data = shardData[id];
+      const defaultMsg = document.getElementById('defaultMsg');
+      
+      defaultMsg.querySelector('.step-badge').innerText = `Собрано ${restoredCount} из ${totalShards}`;
+      defaultMsg.querySelector('h2').innerText = data.title;
+      defaultMsg.querySelector('p').innerText = data.text;
+
+      const progressPercent = (restoredCount / totalShards) * 100;
+      document.getElementById('progressFill').style.width = `${progressPercent}%`;
+
+      // Постепенно убираем размытие с фото по мере сбора осколков
+      const photo = document.getElementById('userPhoto');
+      const currentBlur = Math.max(0, 12 - (restoredCount * 2.4));
+      const currentOpacity = 0.3 + (restoredCount * 0.14);
+      photo.style.filter = `blur(${currentBlur}px) grayscale(${Math.max(0, 40 - restoredCount * 8)}%)`;
+      photo.style.opacity = currentOpacity;
+
+      if (restoredCount === totalShards) {
+        setTimeout(showFinalScreen, 600);
+      }
+    }
+
+    function showFinalScreen() {
+      document.getElementById('heartSvg').classList.add('fully-healed');
+      document.getElementById('userPhoto').classList.add('clear');
+      document.getElementById('defaultMsg').style.display = 'none';
+      document.getElementById('finalScreen').style.display = 'block';
+
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff85a1', '#f72585', '#ffffff']
+      });
+    }
+
+    function resetHeart() {
+      initShards();
+    }
+
+    // Загрузка пользовательского фото
+    document.getElementById('photoInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('userPhoto').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function createBgHearts() {
+      const container = document.getElementById('bgHearts');
+      for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.innerHTML = '❤️';
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (6 + Math.random() * 6) + 's';
+        heart.style.animationDelay = (Math.random() * 5) + 's';
+        container.appendChild(heart);
+      }
+    }
+
+    window.onload = () => {
+      createBgHearts();
+      initShards();
+    };
+  </script>
+</body>
+</html>
